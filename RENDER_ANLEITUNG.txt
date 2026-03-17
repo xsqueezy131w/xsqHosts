@@ -1,0 +1,117 @@
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  XSQHost auf Render.com hochladen
+  Schritt-für-Schritt Anleitung
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SCHRITT 1 – GitHub Account erstellen
+──────────────────────────────────────
+1. Gehe zu github.com
+2. Klicke "Sign up"
+3. E-Mail, Passwort, Username eingeben
+4. E-Mail bestätigen
+
+
+SCHRITT 2 – GitHub Desktop installieren
+─────────────────────────────────────────
+1. Gehe zu desktop.github.com
+2. Lade "GitHub Desktop" herunter
+3. Installieren und mit deinem Account anmelden
+
+
+SCHRITT 3 – Code auf GitHub hochladen
+───────────────────────────────────────
+1. GitHub Desktop öffnen
+2. "Create New Repository" klicken
+3. Name: xsqhost  (kein Leerzeichen!)
+4. Local Path: Ordner ÜBER dem xsqhost-python Ordner wählen
+5. "Create Repository" klicken
+6. Dann: "Show in Explorer" → alle Dateien aus
+   dem xsqhost-python Ordner dort reinkopieren
+7. Zurück in GitHub Desktop:
+   - Links siehst du alle Dateien
+   - Unten links: Summary eingeben z.B. "first upload"
+   - "Commit to main" klicken
+   - Oben "Publish repository" klicken
+   - "Keep this code private" = AUS lassen (public)
+   - "Publish Repository" klicken
+
+
+SCHRITT 4 – Render Account erstellen
+──────────────────────────────────────
+1. Gehe zu render.com
+2. "Get Started for Free" klicken
+3. Mit GitHub anmelden (gleicher Account)
+4. Berechtigungen bestätigen
+
+
+SCHRITT 5 – Web Service erstellen
+───────────────────────────────────
+1. Im Render Dashboard: "New +" → "Web Service"
+2. "Connect a repository" → dein "xsqhost" Repo auswählen
+3. Einstellungen:
+   Name:             xsqhost
+   Region:           Frankfurt (EU Central)
+   Branch:           main
+   Runtime:          Python 3
+   Build Command:    pip install -r requirements.txt
+   Start Command:    gunicorn app:app
+   Instance Type:    Free ✓
+
+4. Runterscrollen zu "Environment Variables":
+   Klicke "Add Environment Variable" für jede:
+
+   JWT_SECRET    → irgendeinen langen zufälligen Text z.B.:
+                   meinSuperGeheimerSchluessel2025xsqhost
+   FRONTEND_URL  → https://xsqhost.onrender.com
+                   (ersetze mit deiner echten Render-URL)
+
+   Optional (für echte E-Mails):
+   SMTP_HOST     → smtp.gmail.com
+   SMTP_PORT     → 587
+   SMTP_USER     → deine@gmail.com
+   SMTP_PASS     → dein Gmail App-Passwort
+   MAIL_FROM     → XSQHost <deine@gmail.com>
+
+5. "Create Web Service" klicken
+
+
+SCHRITT 6 – Warten & fertig!
+──────────────────────────────
+Render baut jetzt automatisch deine App.
+Das dauert 2-5 Minuten.
+
+Danach ist deine Seite online unter:
+  https://xsqhost.onrender.com
+  (oder dein gewählter Name)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  WICHTIGE HINWEISE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠ Render Free Tier schläft nach 15 Min ein
+  → Beim ersten Aufruf lädt es 30-60 Sekunden
+  → Danach normal schnell
+
+⚠ Datenbank (database.json) wird bei neuem
+  Deploy zurückgesetzt!
+  → Für dauerhaften Speicher: Render Disk
+    hinzufügen (1GB kostenlos)
+  → Im Render Dashboard: dein Service →
+    "Disks" → "Add Disk"
+    Mount Path: /data
+    Size: 1 GB
+
+⚠ FRONTEND_URL muss auf deine echte
+  Render-URL zeigen damit E-Mail Links
+  funktionieren!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  GMAIL APP-PASSWORT (für E-Mails)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. myaccount.google.com öffnen
+2. Sicherheit → 2-Schritt-Verifizierung aktivieren
+3. Sicherheit → App-Passwörter
+4. App: "Andere" → Name: xsqhost → Erstellen
+5. Das 16-stellige Passwort als SMTP_PASS eintragen

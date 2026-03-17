@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: xsqhost
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        value: XSQHost <noreply@xsqhost.de>
+      - key: SFTP_HOST
+        value: sftp.xsqhost.de
