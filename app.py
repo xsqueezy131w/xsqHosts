@@ -10,14 +10,19 @@ app = Flask(__name__, static_folder='public', static_url_path='')
 CORS(app)
 
 # ── CONFIG ────────────────────────────────────
-JWT_SECRET   = os.environ.get('JWT_SECRET', 'change_this_secret_please')
-SMTP_HOST    = os.environ.get('SMTP_HOST', '')
-SMTP_PORT    = int(os.environ.get('SMTP_PORT') or 587)
-SMTP_USER    = os.environ.get('SMTP_USER', '')
-SMTP_PASS    = os.environ.get('SMTP_PASS', '')
-MAIL_FROM    = os.environ.get('MAIL_FROM', 'XSQHost <noreply@xsqhost.de>')
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5000')
-SFTP_HOST    = os.environ.get('SFTP_HOST', 'sftp.xsqhost.de')
+JWT_SECRET   = os.environ.get('JWT_SECRET') or 'change_this_secret_please'
+SMTP_HOST    = os.environ.get('SMTP_HOST') or ''
+SMTP_USER    = os.environ.get('SMTP_USER') or ''
+SMTP_PASS    = os.environ.get('SMTP_PASS') or ''
+MAIL_FROM    = os.environ.get('MAIL_FROM') or 'XSQHost <noreply@xsqhost.de>'
+FRONTEND_URL = os.environ.get('FRONTEND_URL') or 'http://localhost:5000'
+SFTP_HOST    = os.environ.get('SFTP_HOST') or 'sftp.xsqhost.de'
+try:
+    SMTP_PORT = int(os.environ.get('SMTP_PORT') or 587)
+except Exception:
+    SMTP_PORT = 587
+
+print(f"[CONFIG] SMTP_HOST={SMTP_HOST} SMTP_USER={SMTP_USER} SMTP_PORT={SMTP_PORT}")
 
 DB_FILE = 'data/database.json'
 os.makedirs('data', exist_ok=True)
