@@ -21,10 +21,6 @@ try:
     SMTP_PORT = int(os.environ.get('SMTP_PORT') or 587)
 except Exception:
     SMTP_PORT = 587
-print(f"[CONFIG] SMTP_HOST={SMTP_HOST} SMTP_USER={SMTP_USER} SMTP_PORT={SMTP_PORT}")
-    SMTP_PORT = int(os.environ.get('SMTP_PORT') or 587)
-except Exception:
-    SMTP_PORT = 587
 
 print(f"[CONFIG] SMTP_HOST={SMTP_HOST} SMTP_USER={SMTP_USER} SMTP_PORT={SMTP_PORT}")
 
@@ -231,13 +227,13 @@ def register():
     db['users'].append({
         'id': uid, 'email': email, 'passwordHash': pw_hash,
         'username': username, 'plan': 'free',
-        'emailToken': email_token, 'emailVerified': False,
+        'emailToken': email_token, 'emailVerified': True,
         'createdAt': datetime.now(timezone.utc).isoformat(),
     })
     db_save(db)
 
     mail_verify(email, username, email_token)
-    return jsonify({'message': 'Registrierung erfolgreich! Bitte E-Mail bestätigen.', 'userId': uid}), 201
+    return jsonify({'message': 'Registrierung erfolgreich! Du kannst dich jetzt einloggen.', 'userId': uid}), 201
 
 # ── GET /api/verify ───────────────────────────
 @app.route('/api/verify')
@@ -269,8 +265,6 @@ def login():
     user = get_user_by_email(email)
     if not user:
         return jsonify({'error': 'E-Mail oder Passwort falsch'}), 401
-    if not user.get('emailVerified'):
-        return jsonify({'error': 'E-Mail noch nicht bestätigt. Bitte E-Mail prüfen.'}), 403
     if not bcrypt.checkpw(password.encode(), user['passwordHash'].encode()):
         return jsonify({'error': 'E-Mail oder Passwort falsch'}), 401
 
