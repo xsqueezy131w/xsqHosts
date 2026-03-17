@@ -12,7 +12,7 @@ CORS(app)
 # ── CONFIG ────────────────────────────────────
 JWT_SECRET   = os.environ.get('JWT_SECRET', 'change_this_secret_please')
 SMTP_HOST    = os.environ.get('SMTP_HOST', '')
-SMTP_PORT    = int(os.environ.get('SMTP_PORT', 587))
+SMTP_PORT    = int(os.environ.get('SMTP_PORT') or 587)
 SMTP_USER    = os.environ.get('SMTP_USER', '')
 SMTP_PASS    = os.environ.get('SMTP_PASS', '')
 MAIL_FROM    = os.environ.get('MAIL_FROM', 'XSQHost <noreply@xsqhost.de>')
