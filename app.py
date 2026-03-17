@@ -21,6 +21,10 @@ try:
     SMTP_PORT = int(os.environ.get('SMTP_PORT') or 587)
 except Exception:
     SMTP_PORT = 587
+print(f"[CONFIG] SMTP_HOST={SMTP_HOST} SMTP_USER={SMTP_USER} SMTP_PORT={SMTP_PORT}")
+    SMTP_PORT = int(os.environ.get('SMTP_PORT') or 587)
+except Exception:
+    SMTP_PORT = 587
 
 print(f"[CONFIG] SMTP_HOST={SMTP_HOST} SMTP_USER={SMTP_USER} SMTP_PORT={SMTP_PORT}")
 
