@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XSQHost – Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@700;900&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#080B12; --bg2:#0D1120; --bg3:#111828; --card:#141B2D;
+    --border:#1E2A42; --accent:#00E5FF; --accent2:#FF4D00;
+    --green:#00FF88; --yellow:#FFD700; --red:#FF3355;
+    --text:#D8E4F0; --muted:#5A6A8A; --dim:#3A3F58;
+    --mono:'Share Tech Mono',monospace;
+    --cond:'Barlow Condensed',sans-serif;
+    --sans:'Barlow',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+
+  /* ── AUTH SCREEN ── */
+  #auth-screen {
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:var(--bg);
+    background-image:linear-gradient(rgba(0,229,255,.02) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(0,229,255,.02) 1px,transparent 1px);
+    background-size:60px 60px;
+  }
+  .auth-box {
+    background:var(--card); border:1px solid var(--border);
+    padding:40px; width:420px; max-width:95vw;
+    clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,0 100%);
+    animation:fadein .3s ease;
+  }
+  .auth-logo{font-family:var(--mono);font-size:20px;color:var(--accent);letter-spacing:3px;margin-bottom:24px}
+  .auth-logo span{color:var(--accent2)}
+  .auth-tabs{display:flex;gap:2px;margin-bottom:28px}
+  .auth-tab{
+    flex:1;padding:10px;font-family:var(--mono);font-size:12px;letter-spacing:2px;
+    background:transparent;border:1px solid var(--border);color:var(--muted);
+    cursor:pointer;transition:all .15s;
+  }
+  .auth-tab.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+  .form-group{margin-bottom:14px}
+  .form-group label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;display:block;margin-bottom:5px}
+  .form-group input{
+    width:100%;background:var(--bg3);border:1px solid var(--border);
+    color:var(--text);font-family:var(--mono);font-size:13px;
+    padding:10px 14px;outline:none;transition:border-color .2s;
+  }
+  .form-group input:focus{border-color:var(--accent)}
+  .submit-btn{
+    width:100%;padding:13px;background:var(--accent);color:var(--bg);
+    font-family:var(--mono);font-size:13px;letter-spacing:2px;font-weight:bold;
+    border:none;cursor:pointer;margin-top:6px;
+    clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);
+    transition:background .2s;
+  }
+  .submit-btn:hover{background:#00b8d4}
+  .submit-btn.green{background:var(--green);color:#000}
+  .submit-btn.green:hover{background:#00cc6e}
+  .auth-msg{font-family:var(--mono);font-size:11px;padding:10px 14px;margin-top:12px;text-align:center}
+  .auth-msg.error{background:rgba(255,51,85,.1);border:1px solid rgba(255,51,85,.3);color:var(--red)}
+  .auth-msg.success{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--green)}
+
+  /* ── DASHBOARD ── */
+  #dashboard-screen{display:none;min-height:100vh;flex-direction:column}
+
+  /* Nav */
+  .dash-nav{
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    padding:0 32px;height:58px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:50;
+  }
+  .dash-logo{font-family:var(--mono);font-size:16px;color:var(--accent);letter-spacing:2px}
+  .dash-logo span{color:var(--accent2)}
+  .dash-user{display:flex;align-items:center;gap:16px}
+  .dash-username{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .plan-badge{
+    font-family:var(--mono);font-size:10px;letter-spacing:2px;
+    padding:3px 10px;border:1px solid;
+  }
+  .plan-badge.free{color:var(--green);border-color:var(--green)}
+  .plan-badge.starter{color:var(--accent);border-color:var(--accent)}
+  .plan-badge.pro{color:var(--accent2);border-color:var(--accent2)}
+  .logout-btn{
+    font-family:var(--mono);font-size:11px;color:var(--muted);
+    background:none;border:1px solid var(--border);padding:5px 14px;cursor:pointer;
+    transition:all .15s;
+  }
+  .logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+  /* Body */
+  .dash-body{flex:1;display:grid;grid-template-columns:280px 1fr;max-width:1300px;margin:0 auto;width:100%;padding:28px;gap:24px}
+  @media(max-width:768px){.dash-body{grid-template-columns:1fr}}
+
+  /* Sidebar */
+  .sidebar{}
+  .sidebar-title{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:10px}
+
+  .srv-card{
+    background:var(--card);border:1px solid var(--border);
+    padding:16px;margin-bottom:10px;cursor:pointer;
+    transition:border-color .15s;position:relative;
+  }
+  .srv-card:hover,.srv-card.active{border-color:var(--accent)}
+  .srv-card.active::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)
+  }
+  .srv-card-name{font-family:var(--mono);font-size:13px;font-weight:bold;margin-bottom:4px}
+  .srv-card-sub{font-family:var(--mono);font-size:10px;color:var(--muted)}
+  .srv-status{display:flex;align-items:center;gap:6px;margin-top:8px}
+  .status-dot{width:7px;height:7px;border-radius:50%}
+  .status-dot.online{background:var(--green);box-shadow:0 0 6px var(--green)}
+  .status-dot.offline{background:var(--muted)}
+  .status-dot.restarting{background:var(--yellow);animation:blink 1s infinite}
+  .status-txt{font-family:var(--mono);font-size:10px}
+
+  .new-server-btn{
+    width:100%;padding:12px;border:1px dashed var(--border);
+    background:transparent;color:var(--muted);font-family:var(--mono);font-size:12px;
+    cursor:pointer;transition:all .15s;margin-top:4px;letter-spacing:1px;
+  }
+  .new-server-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* Main panel */
+  .main-panel{}
+  .panel-section{background:var(--card);border:1px solid var(--border);padding:24px;margin-bottom:20px}
+  .panel-title{font-family:var(--cond);font-size:22px;font-weight:900;margin-bottom:4px}
+  .panel-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-bottom:20px}
+  .divider{height:1px;background:var(--border);margin:16px 0}
+
+  .metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+  .metric{background:var(--bg3);border:1px solid var(--border);padding:14px}
+  .metric-val{font-family:var(--cond);font-size:26px;font-weight:900}
+  .metric-key{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px}
+  .metric-bar{height:4px;background:var(--border);margin-top:10px;border-radius:2px;overflow:hidden}
+  .metric-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+  /* SFTP Box */
+  .cred-box{background:var(--bg3);border:1px solid var(--border);padding:20px;font-family:var(--mono);font-size:13px}
+  .cred-row{display:flex;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+  .cred-row:last-child{border-bottom:none}
+  .cred-key{color:var(--muted);min-width:120px;font-size:11px}
+  .cred-val{color:var(--accent)}
+  .cred-val.green{color:var(--green)}
+  .cred-val.yellow{color:var(--yellow)}
+  .copy-btn{
+    margin-left:auto;font-family:var(--mono);font-size:10px;
+    background:transparent;border:1px solid var(--border);color:var(--muted);
+    padding:3px 10px;cursor:pointer;transition:all .15s;
+  }
+  .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .copy-btn.copied{border-color:var(--green);color:var(--green)}
+
+  .action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .action-btn{
+    font-family:var(--mono);font-size:11px;letter-spacing:1px;
+    padding:9px 18px;border:1px solid var(--border);background:transparent;
+    color:var(--muted);cursor:pointer;transition:all .15s;
+  }
+  .action-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .action-btn.danger:hover{border-color:var(--red);color:var(--red)}
+  .action-btn.success{border-color:var(--green);color:var(--green)}
+
+  /* Create server form */
+  .create-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:500px){.create-form{grid-template-columns:1fr}}
+  .create-form select{
+    width:100%;background:var(--bg3);border:1px solid var(--border);
+    color:var(--text);font-family:var(--mono);font-size:13px;
+    padding:10px 14px;outline:none;transition:border-color .2s;appearance:none;
+  }
+  .create-form select:focus{border-color:var(--accent)}
+
+  /* Empty state */
+  .empty-state{
+    text-align:center;padding:60px 20px;
+    font-family:var(--mono);color:var(--muted);
+  }
+  .empty-state .icon{font-size:40px;margin-bottom:16px}
+  .empty-state h3{font-family:var(--cond);font-size:24px;color:var(--text);margin-bottom:8px}
+
+  /* Toast */
+  #toast{
+    position:fixed;bottom:24px;right:24px;z-index:9999;
+    font-family:var(--mono);font-size:12px;letter-spacing:1px;
+    padding:12px 20px;
+    background:var(--card);border:1px solid var(--border);
+    opacity:0;transform:translateY(10px);
+    transition:all .2s;pointer-events:none;
+  }
+  #toast.show{opacity:1;transform:none}
+  #toast.green{border-color:var(--green);color:var(--green)}
+  #toast.red{border-color:var(--red);color:var(--red)}
+
+  /* Animations */
+  @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes blink{50%{opacity:.3}}
+
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<!-- ── AUTH SCREEN ───────────────────────────── -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">◈ XSQ<span>HOST</span></div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">LOGIN</button>
+      <button class="auth-tab" onclick="switchTab('register')">REGISTRIEREN</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>E-MAIL</label>
+        <input type="email" id="login-email" placeholder="deine@email.de" />
+      </div>
+      <div class="form-group">
+        <label>PASSWORT</label>
+        <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+      </div>
+      <button class="submit-btn" onclick="doLogin()">EINLOGGEN →</button>
+      <div id="login-msg" class="auth-msg hidden"></div>
+      <p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px;text-align:center;cursor:pointer" onclick="switchTab('forgot')">Passwort vergessen?</p>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register-form" class="hidden">
+      <div class="form-group">
+        <label>BENUTZERNAME</label>
+        <input type="text" id="reg-user" placeholder="DeinName" />
+      </div>
+      <div class="form-group">
+        <label>E-MAIL</label>
+        <input type="email" id="reg-email" placeholder="deine@email.de" />
+      </div>
+      <div class="form-group">
+        <label>PASSWORT (min. 8 Zeichen)</label>
+        <input type="password" id="reg-pass" placeholder="••••••••" />
+      </div>
+      <button class="submit-btn green" onclick="doRegister()">KOSTENLOS REGISTRIEREN →</button>
+      <div id="register-msg" class="auth-msg hidden"></div>
+      <p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px;text-align:center">✓ 1 Server kostenlos · Keine Kreditkarte</p>
+    </div>
+
+    <!-- FORGOT -->
+    <div id="forgot-form" class="hidden">
+      <div class="form-group">
+        <label>E-MAIL</label>
+        <input type="email" id="forgot-email" placeholder="deine@email.de" />
+      </div>
+      <button class="submit-btn" onclick="doForgot()">RESET-LINK SENDEN →</button>
+      <div id="forgot-msg" class="auth-msg hidden"></div>
+      <p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px;text-align:center;cursor:pointer" onclick="switchTab('login')">← Zurück zum Login</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── DASHBOARD ──────────────────────────────── -->
+<div id="dashboard-screen">
+  <nav class="dash-nav">
+    <div class="dash-logo">◈ XSQ<span>HOST</span></div>
+    <div class="dash-user">
+      <div id="nav-username" class="dash-username"></div>
+      <div id="nav-plan" class="plan-badge free"></div>
+      <button class="logout-btn" onclick="doLogout()">LOGOUT</button>
+    </div>
+  </nav>
+
+  <div class="dash-body">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-title">MEINE SERVER</div>
+      <div id="server-list"></div>
+      <button class="new-server-btn" onclick="showCreateForm()">+ NEUEN SERVER ERSTELLEN</button>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main-panel" id="main-panel">
+      <div class="empty-state">
+        <div class="icon">🎮</div>
+        <h3>Kein Server ausgewählt</h3>
+        <p>Erstelle deinen ersten kostenlosen FiveM Server oder wähle einen aus der Liste.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = ''; // leer = gleicher Host, oder z.B. 'http://localhost:3000'
+let token = localStorage.getItem('xsq_token');
+let currentUser = null;
+let servers = [];
+let selectedServerId = null;
+
+// ── INIT ─────────────────────────────────────
+window.onload = async () => {
+  if (token) {
+    try {
+      const r = await apiFetch('/api/me');
+      currentUser = r;
+      showDashboard();
+    } catch { logout(); }
+  }
+};
+
+// ── API HELPER ────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: 'Bearer ' + token } : {}),
+      ...(opts.headers || {}),
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Fehler');
+  return data;
+}
+
+// ── AUTH TABS ─────────────────────────────────
+function switchTab(tab) {
+  ['login','register','forgot'].forEach(t => {
+    document.getElementById(t+'-form').classList.toggle('hidden', t !== tab);
+  });
+  document.querySelectorAll('.auth-tab').forEach((b,i) => {
+    b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register'));
+  });
+}
+
+// ── LOGIN ─────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const msg   = document.getElementById('login-msg');
+  try {
+    const r = await apiFetch('/api/login', { method:'POST', body:{email,password:pass} });
+    token = r.token;
+    localStorage.setItem('xsq_token', token);
+    currentUser = r.user;
+    showDashboard();
+  } catch(e) {
+    showMsg(msg, e.message, 'error');
+  }
+}
+
+// ── REGISTER ──────────────────────────────────
+async function doRegister() {
+  const username = document.getElementById('reg-user').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const pass     = document.getElementById('reg-pass').value;
+  const msg      = document.getElementById('register-msg');
+  try {
+    await apiFetch('/api/register', { method:'POST', body:{username,email,password:pass} });
+    showMsg(msg, '✓ Registriert! Bitte E-Mail bestätigen (auch Spam prüfen).', 'success');
+  } catch(e) {
+    showMsg(msg, e.message, 'error');
+  }
+}
+
+// ── FORGOT ────────────────────────────────────
+async function doForgot() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const msg   = document.getElementById('forgot-msg');
+  try {
+    await apiFetch('/api/forgot-password', { method:'POST', body:{email} });
+    showMsg(msg, '✓ Falls die E-Mail existiert, wurde ein Link gesendet.', 'success');
+  } catch(e) {
+    showMsg(msg, e.message, 'error');
+  }
+}
+
+function doLogout() { logout(); }
+function logout() {
+  localStorage.removeItem('xsq_token');
+  token = null; currentUser = null; servers = [];
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('dashboard-screen').style.display = 'none';
+}
+
+// ── DASHBOARD ─────────────────────────────────
+async function showDashboard() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('dashboard-screen').style.display = 'flex';
+  document.getElementById('nav-username').textContent = currentUser.username;
+  const pb = document.getElementById('nav-plan');
+  pb.textContent = currentUser.plan.toUpperCase();
+  pb.className = `plan-badge ${currentUser.plan}`;
+  await loadServers();
+}
+
+async function loadServers() {
+  try {
+    servers = await apiFetch('/api/servers');
+    renderServerList();
+  } catch(e) { showToast(e.message, 'red'); }
+}
+
+function renderServerList() {
+  const el = document.getElementById('server-list');
+  if (!servers.length) {
+    el.innerHTML = '<p style="font-family:var(--mono);font-size:11px;color:var(--muted);padding:8px 0">Noch keine Server. Erstelle deinen ersten!</p>';
+    return;
+  }
+  el.innerHTML = servers.map(s => `
+    <div class="srv-card ${s.id===selectedServerId?'active':''}" onclick="selectServer('${s.id}')">
+      <div class="srv-card-name">${esc(s.name)}</div>
+      <div class="srv-card-sub">${s.framework} · ${s.plan.toUpperCase()}</div>
+      <div class="srv-status">
+        <div class="status-dot ${s.status}"></div>
+        <div class="status-txt" style="color:${s.status==='online'?'var(--green)':s.status==='restarting'?'var(--yellow)':'var(--muted)'}">
+          ${s.status.toUpperCase()}
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectServer(id) {
+  selectedServerId = id;
+  const s = servers.find(x => x.id === id);
+  if (!s) return;
+  renderServerList();
+  renderServerDetail(s);
+}
+
+function renderServerDetail(s) {
+  const plan = s.resources || {};
+  document.getElementById('main-panel').innerHTML = `
+    <div class="panel-section">
+      <div class="panel-title">${esc(s.name)}</div>
+      <div class="panel-sub">${s.framework} · SERVER-ID: ${s.id.slice(0,8).toUpperCase()}</div>
+
+      <div class="metrics-row">
+        <div class="metric">
+          <div class="metric-val" style="color:var(--green)">${plan.ram||'2GB'}</div>
+          <div class="metric-key">RAM</div>
+          <div class="metric-bar"><div class="metric-fill" style="width:70%;background:var(--yellow)"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" style="color:var(--accent)">${plan.cores||2}</div>
+          <div class="metric-key">CPU KERNE</div>
+          <div class="metric-bar"><div class="metric-fill" style="width:38%;background:var(--green)"></div></div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" style="color:var(--accent2)">${plan.slots||32}</div>
+          <div class="metric-key">MAX SLOTS</div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="action-btn success" onclick="setStatus('${s.id}','online')">▶ STARTEN</button>
+        <button class="action-btn" onclick="setStatus('${s.id}','offline')">■ STOPPEN</button>
+        <button class="action-btn" onclick="setStatus('${s.id}','restarting')">↻ NEUSTARTEN</button>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title" style="font-size:16px">📁 WINSCP / SFTP ZUGANGSDATEN</div>
+      <div class="panel-sub">IN WINSCP EINGEBEN · PROTOKOLL: SFTP · PORT: ${s.sftp.port}</div>
+      <div class="cred-box">
+        <div class="cred-row"><span class="cred-key">Host</span><span class="cred-val">${s.sftp.host}</span><button class="copy-btn" onclick="copyVal(this,'${s.sftp.host}')">KOPIEREN</button></div>
+        <div class="cred-row"><span class="cred-key">Port</span><span class="cred-val">${s.sftp.port}</span></div>
+        <div class="cred-row"><span class="cred-key">Benutzer</span><span class="cred-val green">${s.sftp.user}</span><button class="copy-btn" onclick="copyVal(this,'${s.sftp.user}')">KOPIEREN</button></div>
+        <div class="cred-row"><span class="cred-key">Passwort</span><span class="cred-val yellow">${s.sftp.pass}</span><button class="copy-btn" onclick="copyVal(this,'${s.sftp.pass}')">KOPIEREN</button></div>
+      </div>
+      <p style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:10px">
+        ✓ Serverdateien unter: <span style="color:var(--accent)">/server-data/resources/</span> &nbsp;·&nbsp;
+        Config: <span style="color:var(--accent)">/server-data/server.cfg</span>
+      </p>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title" style="font-size:16px">🗄️ MYSQL DATENBANK</div>
+      <div class="panel-sub">IN SERVER.CFG EINTRAGEN</div>
+      <div class="cred-box">
+        <div class="cred-row"><span class="cred-key">Host</span><span class="cred-val">${s.db.host}</span></div>
+        <div class="cred-row"><span class="cred-key">Datenbank</span><span class="cred-val green">${s.db.name}</span><button class="copy-btn" onclick="copyVal(this,'${s.db.name}')">KOPIEREN</button></div>
+        <div class="cred-row"><span class="cred-key">Benutzer</span><span class="cred-val green">${s.db.user}</span><button class="copy-btn" onclick="copyVal(this,'${s.db.user}')">KOPIEREN</button></div>
+        <div class="cred-row"><span class="cred-key">Passwort</span><span class="cred-val yellow">${s.db.pass}</span><button class="copy-btn" onclick="copyVal(this,'${s.db.pass}')">KOPIEREN</button></div>
+      </div>
+      <div class="cred-box" style="margin-top:10px;font-size:11px;color:var(--muted)">
+        <div style="color:var(--dim);margin-bottom:6px"># server.cfg Eintrag:</div>
+        set mysql_connection_string "mysql://${s.db.user}:${s.db.pass}@${s.db.host}/${s.db.name}?charset=utf8mb4"
+      </div>
+    </div>
+  `;
+}
+
+function showCreateForm() {
+  selectedServerId = null;
+  renderServerList();
+  document.getElementById('main-panel').innerHTML = `
+    <div class="panel-section">
+      <div class="panel-title">NEUEN SERVER ERSTELLEN</div>
+      <div class="panel-sub">FREE PLAN · 2GB RAM · 2 KERNE · 2GB STORAGE · 32 SLOTS</div>
+      <div class="divider"></div>
+      <div class="create-form">
+        <div class="form-group">
+          <label>SERVERNAME</label>
+          <input type="text" id="new-srv-name" placeholder="z.B. Mein RP Server" style="width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:13px;padding:10px 14px;outline:none" />
+        </div>
+        <div class="form-group">
+          <label>FRAMEWORK</label>
+          <select id="new-srv-fw">
+            <option>ESX</option>
+            <option>QBCore</option>
+            <option>VORP</option>
+            <option>Blank</option>
+          </select>
+        </div>
+      </div>
+      <button class="submit-btn green" style="max-width:280px;margin-top:8px" onclick="createServer()">SERVER ERSTELLEN →</button>
+      <div id="create-msg" class="auth-msg hidden" style="max-width:400px"></div>
+      <p style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px">✓ Zugangsdaten werden automatisch per E-Mail gesendet</p>
+    </div>
+  `;
+}
+
+async function createServer() {
+  const name = document.getElementById('new-srv-name')?.value.trim();
+  const fw   = document.getElementById('new-srv-fw')?.value;
+  const msg  = document.getElementById('create-msg');
+  if (!name) { showMsg(msg,'Bitte Servername eingeben','error'); return; }
+  try {
+    const r = await apiFetch('/api/servers', { method:'POST', body:{ name, framework:fw } });
+    showToast('✓ Server erstellt! E-Mail wurde gesendet.', 'green');
+    await loadServers();
+    const newSrv = servers.find(s => s.name === name);
+    if (newSrv) selectServer(newSrv.id);
+  } catch(e) {
+    showMsg(msg, e.message, 'error');
+  }
+}
+
+async function setStatus(id, status) {
+  try {
+    await apiFetch(`/api/servers/${id}/status`, { method:'PATCH', body:{status} });
+    const s = servers.find(x => x.id === id);
+    if (s) { s.status = status; renderServerList(); renderServerDetail(s); }
+    showToast(`Status → ${status.toUpperCase()}`, 'green');
+  } catch(e) { showToast(e.message,'red'); }
+}
+
+// ── UTILS ─────────────────────────────────────
+function copyVal(btn, val) {
+  navigator.clipboard.writeText(val).then(() => {
+    btn.textContent = '✓ KOPIERT';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent='KOPIEREN'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+function showToast(msg, type='green') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  setTimeout(() => el.className = '', 3000);
+}
+
+function showMsg(el, msg, type) {
+  el.textContent = msg;
+  el.className = `auth-msg ${type}`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
