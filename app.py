@@ -6,7 +6,17 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from functools import wraps
 
-app = Flask(__name__, static_folder='public', static_url_path='')
+app = Flask(__name__, static_folder="public", static_url_path="")
+CORS(app)
+
+@app.errorhandler(404)
+def not_found(e):
+    if request.path.startswith("/api/"): return jsonify({"error":"Not found"}), 404
+    return send_from_directory("public", "index.html")
+
+@app.errorhandler(500)
+def server_error(e):
+    return jsonify({"error":"Serverfehler"}), 500
 CORS(app)
 
 # ── CONFIG ────────────────────────────────────
@@ -92,7 +102,7 @@ def send_email(to, subject, html):
         msg['From']    = MAIL_FROM
         msg['To']      = to
         msg.attach(MIMEText(html, 'html'))
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as s:
             s.starttls()
             s.login(SMTP_USER, SMTP_PASS)
             s.sendmail(SMTP_USER, to, msg.as_string())
