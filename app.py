@@ -109,10 +109,17 @@ def send_email_async(to, subject, html):
             msg['From'] = MAIL_FROM
             msg['To'] = to
             msg.attach(MIMEText(html, 'html'))
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
-                s.starttls()
-                s.login(SMTP_USER, SMTP_PASS)
-                s.sendmail(SMTP_USER, to, msg.as_string())
+            if SMTP_PORT == 465:
+                import ssl
+                ctx = ssl.create_default_context()
+                with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15, context=ctx) as s:
+                    s.login(SMTP_USER, SMTP_PASS)
+                    s.sendmail(SMTP_USER, to, msg.as_string())
+            else:
+                with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
+                    s.starttls()
+                    s.login(SMTP_USER, SMTP_PASS)
+                    s.sendmail(SMTP_USER, to, msg.as_string())
             print('[MAIL OK] Sent to ' + to)
         except Exception as e:
             print('[MAIL ERROR] ' + str(e))
